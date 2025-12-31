@@ -31,7 +31,8 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:3000/api/products/stats', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/api/products/stats`, {
         headers: { 'x-api-key': 'Epic_Tech_2026' }
       })
       if (!res.ok) throw new Error("Failed to fetch stats")

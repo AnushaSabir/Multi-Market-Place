@@ -123,11 +123,15 @@ export function ProductList({ initialProducts }: { initialProducts: Product[] })
       description: `Optimizing ${selected.length} products for German market...`,
     })
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     let successCount = 0;
 
     for (const id of selected) {
       try {
-        const res = await fetch(`http://127.0.0.1:3000/api/ai/optimize/${id}`, {
+        // Step 1: Optimize locally via API
+        toast({ title: "AI Optimization Started", description: "Generating optimizations..." });
+
+        const res = await fetch(`${API_URL}/api/ai/optimize/${id}`, {
           method: 'POST',
           headers: { 'x-api-key': 'Epic_Tech_2026' }
         });
@@ -151,7 +155,8 @@ export function ProductList({ initialProducts }: { initialProducts: Product[] })
     if (!confirm(`Are you sure you want to delete ${selected.length} products? This cannot be undone.`)) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:3000/api/products/batch`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/api/products/batch`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +185,8 @@ export function ProductList({ initialProducts }: { initialProducts: Product[] })
     if (!confirm("This action is irreversible. All synced data will be lost. Proceed?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:3000/api/products/cleanup?marketplace=all`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/api/products/cleanup?marketplace=all`, {
         method: 'DELETE',
         headers: { 'x-api-key': 'Epic_Tech_2026' }
       });
@@ -220,7 +226,8 @@ export function ProductList({ initialProducts }: { initialProducts: Product[] })
     })
 
     try {
-      const res = await fetch(`http://127.0.0.1:3000/api/sync/batch`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/api/sync/batch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -250,7 +257,8 @@ export function ProductList({ initialProducts }: { initialProducts: Product[] })
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:3000/api/products/${id}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: { 'x-api-key': 'Epic_Tech_2026' }
       });

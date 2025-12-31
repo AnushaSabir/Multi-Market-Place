@@ -21,8 +21,10 @@ export default function ImportPage() {
     let interval: any;
     if (isImporting) {
       interval = setInterval(async () => {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
         try {
-          const res = await fetch('http://127.0.0.1:3000/api/products?limit=5');
+          // Poll for latest imported products to show "live feed"
+          const res = await fetch(`${API_URL}/api/products?limit=5`);
           const json = await res.json();
           if (json.data) {
             setRecentImports(json.data);
@@ -35,7 +37,8 @@ export default function ImportPage() {
 
   const handleStopImport = async () => {
     try {
-      await fetch('http://127.0.0.1:3000/api/import/stop', { method: 'POST' });
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      await fetch(`${API_URL}/api/import/stop`, { method: 'POST' });
       toast({ title: "Stopping...", description: "Import will stop shortly." });
     } catch (e) {
       console.error(e);
@@ -50,7 +53,8 @@ export default function ImportPage() {
     })
 
     try {
-      const response = await fetch(`http://127.0.0.1:3000/api/import/${source.toLowerCase()}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/api/import/${source.toLowerCase()}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
