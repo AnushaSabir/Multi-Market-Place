@@ -1,0 +1,96 @@
+import express from 'express';
+import { supabase } from '../database/supabaseClient';
+
+const router = express.Router();
+
+// GET /api/products
+// Fetch all products with optional filters
+router.get('/', async (req, res) => {
+    const { page = 1, limit = 20, status } = req.query;
+    const from = (Number(page) - 1) * Number(limit);
+    const to = from + Number(limit) - 1;
+
+    let query = supabase
+        .from('products')
+        .select('*', { count: 'exact' })
+        .range(from, to);
+
+    if (status) {
+        query = query.eq('status', status);
+    }
+
+    // Default sort by created_at desc if not specified, to show newest first
+    query = query.order('created_at', { ascending: false });
+
+    const { data, count, error } = await query;
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ data, count, page: Number(page), limit: Number(limit) });
+});
+
+// GET /api/products/stats - Dashboard Statistics
+router.get('/stats', async (req, res) => {
+    try {
+        // Total products
+        const { count: totalCount, error: totalError } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true });
+
+        if (totalError) throw totalError;
+
+        // Marketplace counts
+        const { data: marketplaceData, error: mpError } = await supabase
+            .from('marketplace_products')
+            .select('marketplace');
+
+        if (mpError) throw mpError;
+
+        // Group by marketplace
+        const counts: Record<string, number> = {};
+        marketplaceData.forEach((row: any) => {
+            counts[row.marketplace] = (counts[row.marketplace] || 0) + 1;
+        });
+
+        // Mocking "AI Optimized" and "Sync Errors" for now as we don't have dedicated columns yet
+        const stats = {
+            total: totalCount || 0,
+            aiOptimized: Math.floor((totalCount || 0) * 0.6), // Mock: 60% optimized
+            synced: marketplaceData.length,
+            marketplaces: {
+                otto: counts['otto'] || 0,
+                ebay: counts['ebay'] || 0,
+                kaufland: counts['kaufland'] || 0,
+                shopify: counts['shopify'] || 0
+            }
+        };
+
+        res.json(stats);
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/products/:id
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { data, error } = await supabase
+        .from('products')
+        .select(`
+            *,
+            marketplace_products (
+                marketplace,
+                external_id,
+                price,
+                quantity,
+                sync_status,
+                last_synced_at
+            )
+        `)
+        .eq('id', id)
+        .single();
+
+    if (error) return res.status(404).json({ error: 'Product not found' });
+    res.json(data);
+});
+
+export default router;
