@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import crawlerRoutes from './routes/crawlerRoutes';
+// import crawlerRoutes from './routes/crawlerRoutes';
 import { authenticateAPI } from './middleware/auth';
 
 dotenv.config();
@@ -39,7 +39,7 @@ app.use('/api', apiLimiter);
 import aiRoutes from './routes/aiRoutes';
 
 // Protected Routes
-app.use('/api/crawler', authenticateAPI, crawlerRoutes);
+// app.use('/api/crawler', authenticateAPI, crawlerRoutes);
 app.use('/api/products', authenticateAPI, productRoutes); // POST/PUT
 app.use('/api/products', authenticateAPI, productGetRoutes); // GET
 app.use('/api/sync', authenticateAPI, syncRoutes);
