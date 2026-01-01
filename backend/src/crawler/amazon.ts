@@ -1,8 +1,8 @@
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+// import puppeteer from 'puppeteer-extra';
+// import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { supabase } from '../database/supabaseClient';
 
-puppeteer.use(StealthPlugin());
+// puppeteer.use(StealthPlugin()); // Moved inside function
 
 export interface ScrapedProduct {
     title: string;
@@ -16,6 +16,18 @@ export interface ScrapedProduct {
 }
 
 export async function crawlAmazonProduct(urlOrAsin: string): Promise<{ success: boolean; data?: ScrapedProduct; error?: string }> {
+    // VERCEL CHECK: If running on Vercel properly, Puppeteer is hard.
+    // For now, we wrap in try/catch dynamic import to prevent app crash at startup.
+    let puppeteer, StealthPlugin;
+    try {
+        puppeteer = (await import('puppeteer-extra')).default;
+        StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
+        puppeteer.use(StealthPlugin());
+    } catch (e) {
+        console.error("Puppeteer libraries missing or failed to load:", e);
+        return { success: false, error: "Crawler not supported in this environment (Vercel Serverless)." };
+    }
+
     let url = urlOrAsin;
     let asin = '';
 
