@@ -108,6 +108,15 @@ export abstract class BaseExporter {
 
                 await this.logSync('update', 'success');
             } else {
+                await supabase
+                    .from('marketplace_products')
+                    .update({
+                        sync_status: 'failed',
+                        last_synced_at: new Date().toISOString()
+                    })
+                    .eq('product_id', productId)
+                    .eq('marketplace', this.marketplace);
+
                 await this.logSync('update', 'failed', result.error);
             }
 

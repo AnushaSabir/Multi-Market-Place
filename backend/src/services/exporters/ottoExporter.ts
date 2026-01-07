@@ -46,8 +46,9 @@ export class OttoExporter extends BaseExporter {
             return { success: true };
 
         } catch (error: any) {
-            console.error(`[Otto] Update Failed: ${error.message}`);
-            return { success: false, error: error.message };
+            const errorMsg = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+            console.error(`[Otto] Update Failed: ${errorMsg}`);
+            return { success: false, error: errorMsg };
         }
     }
 }
