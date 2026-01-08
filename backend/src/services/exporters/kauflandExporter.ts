@@ -29,10 +29,12 @@ export class KauflandExporter extends BaseExporter {
             if (updates.quantity !== undefined) body.stock = updates.quantity;
 
             if (Object.keys(body).length > 0) {
-                await axios.patch(`https://www.kaufland.de/api/v1/units/${externalId}`, body, {
+                // Kaufland V2 API
+                await axios.patch(`https://sellerapi.kaufland.com/v2/units/${externalId}`, body, {
                     headers: {
-                        'ts-signature': accessToken, // Simplification: assuming token service gives correct auth header value
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${accessToken}`, // Expecting PAT (Personal Access Token)
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'EpicTec/1.0'
                     }
                 });
             }

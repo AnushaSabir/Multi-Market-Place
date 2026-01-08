@@ -72,14 +72,17 @@ export abstract class BaseExporter {
         }
     }
 
-    async updateProduct(productId: string, updates: { price?: number; quantity?: number; title?: string; description?: string }): Promise<ExportResult> {
+    async updateProduct(productId: string, updates: { price?: number; quantity?: number; title?: string; description?: string; sku?: string }): Promise<ExportResult> {
         try {
             await this.logSync('update', 'pending');
 
-            // 1. Get External ID
+            // 1. Get External ID and Product Data (SKU is critical for some exporters)
             const { data: mapping, error } = await supabase
                 .from('marketplace_products')
-                .select('external_id')
+                .select(`
+                    external_id,
+                    products ( sku )
+                `)
                 .eq('product_id', productId)
                 .eq('marketplace', this.marketplace)
                 .single();
@@ -89,9 +92,16 @@ export abstract class BaseExporter {
             }
 
             const token = await TokenManger.getAccessToken(this.marketplace);
+            const productSku = (mapping.products as any)?.sku;
+
+            // Merge SKU into updates if missing
+            const enhancedUpdates = {
+                ...updates,
+                sku: updates.sku || productSku
+            };
 
             // 2. Call API
-            const result = await this.updateListingOnApi(token || 'mock_token', mapping.external_id, updates);
+            const result = await this.updateListingOnApi(token || 'mock_token', mapping.external_id, enhancedUpdates);
 
             // 3. Update local sync status
             if (result.success) {
