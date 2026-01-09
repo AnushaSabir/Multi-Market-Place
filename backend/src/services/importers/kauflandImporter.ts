@@ -88,6 +88,12 @@ export class KauflandImporter extends BaseImporter {
         }
 
         console.log(`Kaufland Import Finished. Total successfully imported: ${totalSaved}`);
+        console.log(`Kaufland Import Finished. Total successfully imported: ${totalSaved}`);
+
+        if (totalSaved === 0) {
+            throw new Error("Zero products found on Kaufland. Verify your 'Client Key' and 'Secret Key'.");
+        }
+
         return [];
     }
 }

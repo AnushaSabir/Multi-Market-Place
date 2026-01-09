@@ -27,8 +27,14 @@ export class OttoExporter extends BaseExporter {
 
             const promises = [];
 
+            // Ensure SKU is URL encoded to handle spaces/special chars
+            const safeSku = encodeURIComponent(sku);
+
             if (updates.price) {
-                promises.push(axios.post(`https://api.otto.market/v1/products/${sku}/pricing`, {
+                // Pricing: Try V2 standard endpoint
+                const priceUrl = `https://api.otto.market/v2/products/${safeSku}/pricing`;
+                console.log(`[Otto] Posting Price to: ${priceUrl}`);
+                promises.push(axios.post(priceUrl, {
                     standardPrice: {
                         amount: updates.price,
                         currency: "EUR"
@@ -37,9 +43,15 @@ export class OttoExporter extends BaseExporter {
             }
 
             if (updates.quantity !== undefined) {
-                promises.push(axios.post(`https://api.otto.market/v1/products/${sku}/quantity`, {
-                    quantity: updates.quantity
-                }, { headers }));
+                // Quantity: MUST use Availability V1 API (Batch format)
+                const qtyUrl = `https://api.otto.market/v1/availability/quantities`;
+                console.log(`[Otto] Posting Quantity to: ${qtyUrl}`);
+                promises.push(axios.post(qtyUrl, [
+                    {
+                        sku: sku, // Send raw SKU (not encoded) in body, as it matches partnerSku
+                        quantity: updates.quantity
+                    }
+                ], { headers }));
             }
 
             await Promise.all(promises);
@@ -47,7 +59,7 @@ export class OttoExporter extends BaseExporter {
 
         } catch (error: any) {
             const errorMsg = error.response?.data ? JSON.stringify(error.response.data) : error.message;
-            console.error(`[Otto] Update Failed: ${errorMsg}`);
+            console.error(`[Otto] Update Failed for SKU '${externalId}': ${errorMsg}`);
             return { success: false, error: errorMsg };
         }
     }

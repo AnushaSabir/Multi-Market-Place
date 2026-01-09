@@ -78,6 +78,10 @@ export class ShopifyImporter extends BaseImporter {
             throw new Error(`Shopify API failed: ${error.message}`);
         }
 
+        if (allProducts.length === 0) {
+            console.error("[ShopifyImporter] No products fetched.");
+            throw new Error("Zero products found. Verify your 'Shop Domain' and 'Access Token' in settings/env.");
+        }
         return allProducts;
     }
 }
